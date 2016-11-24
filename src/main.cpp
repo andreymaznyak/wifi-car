@@ -7,6 +7,7 @@
 #include "./tasks/OTAUpdateProcess.cpp"
 #include "./tasks/WebServerProcess.cpp"
 #include "./tasks/WebSocketServerProcess.cpp"
+#include "config.h"
 Scheduler sched;
 
 //////////////////////
@@ -36,8 +37,8 @@ void setupWiFiAP(){
 }
 
 void setupWifiClient(){
-  const char* ssid = "Garden_Torgoviy_ZAL_2";//"Andrewhous";
-  const char* password = "blackcar";//"1234567891111";
+  const char* ssid = "Andrewhous";//"Andrewhous";
+  const char* password = "1234567891111";//"1234567891111";
 
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);

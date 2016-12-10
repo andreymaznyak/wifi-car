@@ -52,6 +52,7 @@ void setupWifiClient(){
 OTAUpdateProcess otaUpdate(sched,HIGH_PRIORITY,250,"0819");
 WebServerProcess webServer(sched,HIGH_PRIORITY,250);
 WebSocketServerProcess webSocketServer(sched,HIGH_PRIORITY,250);
+
 void setup() {
   Serial.begin(115200);
   setupWiFiAP();

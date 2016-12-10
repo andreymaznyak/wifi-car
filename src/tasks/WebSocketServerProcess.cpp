@@ -10,7 +10,19 @@ enum MOTOR_COMMANDS {
   MOTOR_RIGHT_START = 3,
   MOTOR_RIGHT_STOP = 4,
   MOTORS_START = 5,
-  MOTORS_STOP = 6 };
+  MOTORS_STOP = 6,
+  MOTOR_CHANGE_VECTOR = 7,
+  MOTOR_LEFT_START_BACKWARD = 8,
+  MOTOR_RIGHT_START_BACKWARD = 9,
+  MOTOR_LEFT_START_FORWARD = 10,
+  MOTOR_RIGHT_START_FORWARD = 11
+};
+enum MOTOR_PINS {
+  MOTOR_L_PIN_1 = D0,
+  MOTOR_L_PIN_2 = D1,
+  MOTOR_R_PIN_1 = D2,
+  MOTOR_R_PIN_2 = D3,
+};
 class WebSocketServerProcess : public Process
 {
 public:
@@ -31,13 +43,11 @@ protected:
       webSocket->onEvent([this](uint8_t num, WStype_t type, uint8_t * payload, size_t lenght){webSocketEvent(num,type,payload,lenght);});
 
       Serial.println("WebSocketServerProcess started");
-      pinMode(D0,OUTPUT);
-      pinMode(D1,OUTPUT);
-      pinMode(D2,OUTPUT);
+      pinMode(MOTOR_L_PIN_1,OUTPUT);
+      pinMode(MOTOR_L_PIN_2,OUTPUT);
 
-      pinMode(D5,OUTPUT);
-      pinMode(D6,OUTPUT);
-      pinMode(D7,OUTPUT);
+      pinMode(MOTOR_R_PIN_1,OUTPUT);
+      pinMode(MOTOR_R_PIN_2,OUTPUT);
 
     }
 
@@ -54,6 +64,40 @@ protected:
     }
 private:
     WebSocketsServer * webSocket;
+    bool direction_forward = true;
+    void leftMotorStartForward(){
+      digitalWrite(MOTOR_L_PIN_2, LOW );
+      digitalWrite(MOTOR_L_PIN_1, HIGH );
+    }
+    void leftMotorStartBackward(){
+      digitalWrite(MOTOR_L_PIN_2, HIGH);
+      digitalWrite(MOTOR_L_PIN_1, LOW);
+    }
+    void leftMotorStart(){
+      digitalWrite(MOTOR_L_PIN_2, direction_forward ? LOW : HIGH);
+      digitalWrite(MOTOR_L_PIN_1,direction_forward ? HIGH : LOW);
+    }
+    void leftMotorStop(){
+      digitalWrite(MOTOR_L_PIN_2,LOW);
+      digitalWrite(MOTOR_L_PIN_1,LOW);
+    }
+    void rigthMotorStartForward(){
+      digitalWrite(MOTOR_R_PIN_2, LOW );
+      digitalWrite(MOTOR_R_PIN_1, HIGH );
+    }
+    void rightMotorStartBackward(){
+      digitalWrite(MOTOR_R_PIN_2, HIGH);
+      digitalWrite(MOTOR_R_PIN_1, LOW);
+    }
+    void rightMotorStart(){
+      digitalWrite(MOTOR_R_PIN_2, direction_forward ? LOW : HIGH);
+      digitalWrite(MOTOR_R_PIN_1, direction_forward ? HIGH : LOW);
+    }
+    void rightMotorStop(){
+      digitalWrite(MOTOR_R_PIN_2,LOW);
+      digitalWrite(MOTOR_R_PIN_1,LOW);
+    }
+
     void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t lenght) {
 
       switch(type) {
@@ -72,53 +116,56 @@ private:
           case WStype_TEXT:
               Serial.printf("[%u] get Text: %s Size: %d Int: %d\n", num, payload, lenght, atoi((char*)payload));
               //Расщифровываем команду
-              if(lenght == 1){
+              if(lenght < 3){
                 int command = atoi((char*)payload);
                 switch(command){
                   case MOTORS_START:
                     Serial.printf("MOTORS_START");
-                    digitalWrite(D0,HIGH);
-                    digitalWrite(D1,HIGH);
-                    digitalWrite(D2,HIGH);
-
-                    digitalWrite(D5,HIGH);
-                    digitalWrite(D6,HIGH);
-                    digitalWrite(D7,HIGH);
+                    leftMotorStart();
+                    rightMotorStart();
                   break;
                   case MOTORS_STOP:
                     Serial.printf("MOTORS_STOP");
-                    digitalWrite(D0,LOW);
-                    digitalWrite(D1,LOW);
-                    digitalWrite(D2,LOW);
-
-                    digitalWrite(D5,LOW);
-                    digitalWrite(D6,LOW);
-                    digitalWrite(D7,LOW);
+                    leftMotorStop();
+                    rightMotorStop();
                   break;
                   case MOTOR_LEFT_START:
                     Serial.printf("MOTOR_LEFT_START");
-                    digitalWrite(D0,HIGH);
-                    digitalWrite(D1,HIGH);
-                    digitalWrite(D2,HIGH);
+                    leftMotorStart();
                   break;
                   case MOTOR_LEFT_STOP:
                     Serial.printf("MOTOR_LEFT_STOP");
-                    digitalWrite(D0,LOW);
-                    digitalWrite(D1,LOW);
-                    digitalWrite(D2,LOW);
+                    leftMotorStop();
 
                   break;
                   case MOTOR_RIGHT_START:
                     Serial.printf("MOTOR_RIGHT_START");
-                    digitalWrite(D5,HIGH);
-                    digitalWrite(D6,HIGH);
-                    digitalWrite(D7,HIGH);
+                    rightMotorStart();
                   break;
                   case MOTOR_RIGHT_STOP:
                     Serial.printf("MOTOR_RIGHT_STOP");
-                    digitalWrite(D5,LOW);
-                    digitalWrite(D6,LOW);
-                    digitalWrite(D7,LOW);
+                    rightMotorStop();
+                  break;
+                  case MOTOR_CHANGE_VECTOR:
+                    Serial.printf("MOTOR_RIGHT_STOP");
+                    direction_forward = !direction_forward;
+                  break;
+                  case MOTOR_LEFT_START_BACKWARD:
+                    leftMotorStartBackward();
+                    Serial.printf("MOTOR_LEFT_BACKWARD");
+                  break;
+                  case MOTOR_RIGHT_START_BACKWARD:
+                    rightMotorStartBackward();
+                    Serial.printf("MOTOR_RIGHT_BACKWARD");
+                  break;
+
+                  case MOTOR_RIGHT_START_FORWARD:
+                    rigthMotorStartForward();
+                    Serial.printf("MOTOR_RIGHT_FORWARD");
+                  break;
+                  case MOTOR_LEFT_START_FORWARD:
+                    leftMotorStartForward();
+                    Serial.printf("MOTOR_LEFT_FORWARD");
                   break;
                 }
               }

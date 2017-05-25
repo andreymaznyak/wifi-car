@@ -13,7 +13,7 @@ Scheduler sched;
 //////////////////////
 // WiFi Definitions //
 //////////////////////
-const char WiFiAPPSK[] = "sparkfun";
+const char WiFiAPPSK[] = "start123";
 
 void setupWiFiAP(){
   WiFi.mode(WIFI_AP);
@@ -42,10 +42,19 @@ void setupWifiClient(){
 
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
+  const uint8_t MAX_TRYING_COUNT = 1;
+  uint8_t trying = 0;
   while (WiFi.waitForConnectResult() != WL_CONNECTED) {
+    trying++;
     Serial.println("Connection Failed! Rebooting...");
     delay(5000);
-    ESP.restart();
+    //if ( trying > MAX_TRYING_COUNT ) {
+      setupWiFiAP();
+      break;
+    // } else {
+    //   ESP.restart();
+    // }
+
   }
 }
 
@@ -56,6 +65,7 @@ WebSocketServerProcess webSocketServer(sched,HIGH_PRIORITY,250);
 void setup() {
   Serial.begin(115200);
   setupWiFiAP();
+  //setupWifiClient();
   Serial.println(WiFi.localIP());
   otaUpdate.add(true);
   webServer.add(true);

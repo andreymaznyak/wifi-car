@@ -82,7 +82,7 @@ protected:
                                                         break;\
                                                 }\
                                             };\
-                                            var socket = new WebSocket('ws://192.168.4.1:81');\
+                                            var socket = new WebSocket('ws://192.168.4.1:81');/*4.1*/\
                                             socket.onopen = socketOnOpen;\
                                             window.onload = function(){\
                                                 document.getElementById('SRF').addEventListener('touchstart', startRightForward, false);\

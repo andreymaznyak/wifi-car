@@ -18,11 +18,18 @@ enum MOTOR_COMMANDS {
   MOTOR_RIGHT_START_FORWARD = 11
 };
 enum MOTOR_PINS {
+  MOTOR_L_PWM   = D5,
   MOTOR_L_PIN_1 = D0,
   MOTOR_L_PIN_2 = D1,
+
+  MOTOR_R_PWM   = D4,
   MOTOR_R_PIN_1 = D2,
   MOTOR_R_PIN_2 = D3,
 };
+// enum directions {
+//   FORWARD = true, BACKWARD = false
+// }
+
 class WebSocketServerProcess : public Process
 {
 public:
@@ -43,9 +50,12 @@ protected:
       webSocket->onEvent([this](uint8_t num, WStype_t type, uint8_t * payload, size_t lenght){webSocketEvent(num,type,payload,lenght);});
 
       Serial.println("WebSocketServerProcess started");
-      pinMode(MOTOR_L_PIN_1,OUTPUT);
-      pinMode(MOTOR_L_PIN_2,OUTPUT);
 
+      pinMode(MOTOR_L_PWM,OUTPUT);
+      pinMode(MOTOR_L_PIN_2,OUTPUT);
+      pinMode(MOTOR_L_PIN_1,OUTPUT);
+
+      pinMode(MOTOR_R_PWM,OUTPUT);
       pinMode(MOTOR_R_PIN_1,OUTPUT);
       pinMode(MOTOR_R_PIN_2,OUTPUT);
 
@@ -65,35 +75,86 @@ protected:
 private:
     WebSocketsServer * webSocket;
     bool direction_forward = true;
+
+    bool left_motor_direction = true;
+    bool rigth_motor_direction = true;
+
+    bool left_motor_started = false;
+    bool rigth_motor_started = false;
+
+    void softStart( int pin ) {
+      // for ( uint8_t i = 0; i < 255; i++ ) {
+      //   analogWrite(pin, i);
+      //   delay(100);
+      // }
+      Serial.printf("soft STARTED \n");
+      digitalWrite(pin,HIGH);
+    }
+
+    void softStop( int pin ) {
+      // for ( uint8_t i = 255; i--; ) {
+      //   analogWrite(pin, i);
+      //   delay(100);
+      // }
+      Serial.printf("soft STOPED \n");
+      digitalWrite(pin, LOW);
+    }
+    void checkStarted( bool left = true ) {
+      if ( left ) {
+        if ( !left_motor_started ) {
+          softStart(MOTOR_L_PWM);
+          left_motor_started = true;
+        }
+      } else {
+        if ( !rigth_motor_started ) {
+          softStart(MOTOR_R_PWM);
+          rigth_motor_started = true;
+        }
+      }
+    }
     void leftMotorStartForward(){
+      checkStarted();
       digitalWrite(MOTOR_L_PIN_2, LOW );
       digitalWrite(MOTOR_L_PIN_1, HIGH );
     }
     void leftMotorStartBackward(){
+      checkStarted();
       digitalWrite(MOTOR_L_PIN_2, HIGH);
       digitalWrite(MOTOR_L_PIN_1, LOW);
     }
     void leftMotorStart(){
+      checkStarted();
       digitalWrite(MOTOR_L_PIN_2, direction_forward ? LOW : HIGH);
       digitalWrite(MOTOR_L_PIN_1,direction_forward ? HIGH : LOW);
     }
     void leftMotorStop(){
+      if ( left_motor_started ) {
+        softStop(MOTOR_L_PWM);
+        left_motor_started = false;
+      }
       digitalWrite(MOTOR_L_PIN_2,LOW);
       digitalWrite(MOTOR_L_PIN_1,LOW);
     }
     void rigthMotorStartForward(){
+      checkStarted(false);
       digitalWrite(MOTOR_R_PIN_2, LOW );
       digitalWrite(MOTOR_R_PIN_1, HIGH );
     }
     void rightMotorStartBackward(){
+      checkStarted(false);
       digitalWrite(MOTOR_R_PIN_2, HIGH);
       digitalWrite(MOTOR_R_PIN_1, LOW);
     }
     void rightMotorStart(){
+      checkStarted(false);
       digitalWrite(MOTOR_R_PIN_2, direction_forward ? LOW : HIGH);
       digitalWrite(MOTOR_R_PIN_1, direction_forward ? HIGH : LOW);
     }
     void rightMotorStop(){
+      if ( rigth_motor_started ) {
+        softStop(MOTOR_R_PWM);
+        rigth_motor_started = false;
+      }
       digitalWrite(MOTOR_R_PIN_2,LOW);
       digitalWrite(MOTOR_R_PIN_1,LOW);
     }
